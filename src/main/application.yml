@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/survey_db #conexion
+    username: postgres
+    password: Admin123
+  jpa:
+    hibernate:
+      ddl-auto: update #actualizacion de tablas o creacion
+    show-sql: true
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: mi_clave_secreta_muy_larga_y_segura_123456
+    expiration-ms: 86400000 #Tiempo de token activo 
