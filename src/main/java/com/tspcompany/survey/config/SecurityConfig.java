@@ -1,6 +1,5 @@
 package com.tspcompany.survey.config;
 
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,14 +16,9 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
-    
-private final JwtUtil jwtUtil;
-    private final PersonRepository personRepository;
 
-    @Bean
-    public JwtFilter jwtFilter() {
-        return new JwtFilter(jwtUtil, personRepository);
-    }
+    private final JwtUtil jwtUtil;
+    private final PersonRepository personRepository;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -33,14 +27,13 @@ private final JwtUtil jwtUtil;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        JwtFilter jwtFilter = new JwtFilter(jwtUtil, personRepository);
         http.csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/api/webhook/**", "/r/**").permitAll()
-                .anyRequest().authenticated()
-            )
-            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
-
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**", "/api/webhook/**", "/r/**").permitAll()
+                        .anyRequest().authenticated())
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

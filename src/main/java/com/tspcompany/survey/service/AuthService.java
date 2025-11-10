@@ -16,30 +16,30 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-    
-private final PersonRepository personRepository;
+
+    private final PersonRepository personRepository;
     private final CompanyRepository companyRepository;
     private final JwtUtil jwtUtil;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public String register(RegisterPersonRequest req) {
         Company company = companyRepository.findById(req.getCompanyId())
-            .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+                .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
 
         if (personRepository.findByEmail(req.getEmail()).isPresent()) {
             throw new RuntimeException("Email ya registrado");
         }
 
         Person p = Person.builder()
-            .firstName(req.getFirstName())
-            .lastName(req.getLastName())
-            .email(req.getEmail())
-            .phone(req.getPhone())
-            .role(req.getRole())
-            .company(company)
-            .status("ACTIVO")
-            .passwordHash(passwordEncoder.encode(req.getPassword()))
-            .build();
+                .firstName(req.getFirstName())
+                .lastName(req.getLastName())
+                .email(req.getEmail())
+                .phone(req.getPhone())
+                .role(req.getRole())
+                .company(company)
+                .status("ACTIVO")
+                .passwordHash(passwordEncoder.encode(req.getPassword()))
+                .build();
 
         personRepository.save(p);
         return jwtUtil.generateToken(p.getEmail());
@@ -47,7 +47,7 @@ private final PersonRepository personRepository;
 
     public String login(AuthRequest req) {
         Person p = personRepository.findByEmail(req.getEmail())
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         if (!"ACTIVO".equalsIgnoreCase(p.getStatus())) {
             throw new RuntimeException("Usuario inactivo");
