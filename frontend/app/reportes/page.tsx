@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import ReportBarChart from "@/components/report-bar-chart";
 
 export default function ReportesPage() {
   return (
@@ -111,42 +112,9 @@ export default function ReportesPage() {
           <h2 className="text-lg font-semibold">Reporte 3</h2>
           <p className="text-sm text-muted-foreground">Distribución de respuestas (1-5)</p>
 
-          {/* Mejor diseño: barras con valores encima, colores temáticos, hover */}
+          {/* Gráfico de barras usando Chart.js (5 datos) */}
           <div className="mt-4 w-full">
-            <div className="relative w-full h-44 bg-transparent">
-              <div className="absolute inset-0 flex items-end gap-4 px-3">
-                {([40, 80, 60, 100, 70] as number[]).map((value, i) => {
-                  const colors = [
-                    'var(--chart-1)',
-                    'var(--chart-2)',
-                    'var(--chart-3)',
-                    'var(--chart-4)',
-                    'var(--chart-5)'
-                  ];
-                  return (
-                    <div key={i} className="flex-1 flex flex-col items-center">
-                      <div className="text-sm font-semibold mb-2">{value}%</div>
-                      <div
-                        title={`${value}%`}
-                        className="w-full max-w-[56px] md:max-w-none mx-auto rounded-t-lg transition-transform duration-200 hover:scale-y-105"
-                        style={{
-                          height: `${value}%`,
-                          background: `linear-gradient(180deg, ${colors[i]} 0%, ${colors[i]} 100%)`
-                        }}
-                      />
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div className="w-full flex gap-4 px-3 mt-3 text-sm text-muted-foreground">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <div key={n} className="flex-1 text-center">
-                  {n}
-                </div>
-              ))}
-            </div>
+            <ReportBarChart />
           </div>
 
           <div className="mt-auto flex justify-end">
