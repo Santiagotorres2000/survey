@@ -1,0 +1,58 @@
+@startuml
+
+class Company {
+  Long id
+  String name
+  String nit
+  String address
+}
+
+class Survey {
+  Long id
+  String title
+  String description
+  LocalDateTime createdAt
+}
+
+class Question {
+  Long id
+  String text
+  String type
+}
+
+class OptionItem {
+  Long id
+  String label
+}
+
+class Person {
+  Long id
+  String firstName
+  String lastName
+  String email
+  String phone
+  String role
+  String status
+  String passwordHash
+}
+
+class Respondent {
+  Long id
+  String phone
+  String email
+}
+
+class Response {
+  Long id
+  String answerText
+}
+
+Company "1" -- "*" Person : tiene >
+Company "1" -- "*" Survey : crea >
+Survey "1" -- "*" Question : contiene >
+Question "1" -- "*" OptionItem : opciones >
+Respondent "1" -- "*" Response : envía >
+Question "1" -- "*" Response : responde >
+OptionItem "0..1" -- "*" Response : selecciona >
+
+@enduml

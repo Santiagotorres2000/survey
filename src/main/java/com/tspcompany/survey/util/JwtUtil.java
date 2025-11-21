@@ -1,52 +1,58 @@
 package com.tspcompany.survey.util;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
-import java.util.Date;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtil {
-    @Value("${app.jwt.secret}")
-    private String secret;
 
-    @Value("${app.jwt.expiration-ms}")
+    @Value("${app.jwt.secret:default_secret_key_that_is_long_enough_for_hs256}")
+    private String secretKey;
+
+    @Value("${app.jwt.expiration:86400000}") 
     private long expirationMs;
 
-    private SecretKey key;
-
-    @PostConstruct
-    public void init() {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    private byte[] getSigningKey() {
+        return secretKey.getBytes(StandardCharsets.UTF_8);
     }
 
-    public String generateToken(String subject) {
+    public String generateToken(String email) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + expirationMs);
+        Date exp = new Date(now.getTime() + expirationMs);
+
         return Jwts.builder()
-                .setSubject(subject)
-                .setIssuedAt(now)
-                .setExpiration(expiry)
-                .signWith(key)
+                .subject(email)
+                .issuedAt(now)
+                .expiration(exp)
+                .signWith(Keys.hmacShaKeyFor(getSigningKey()))
                 .compact();
     }
 
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return getClaims(token).getSubject();
     }
 
-    private <T> T extractClaim(String token, java.util.function.Function<Claims, T> claimsResolver) {
+    public boolean validateToken(String token) {
         try {
-            final Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
-            return claimsResolver.apply(claims);
-        } catch (JwtException e) {
-            throw new RuntimeException("Token inválido");
+            getClaims(token);
+            return true;
+        } catch (Exception e) {
+            return false;
         }
+    }
+
+    private Claims getClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(getSigningKey()))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

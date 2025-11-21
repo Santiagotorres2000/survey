@@ -8,7 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Person<company> {
+public class Person {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

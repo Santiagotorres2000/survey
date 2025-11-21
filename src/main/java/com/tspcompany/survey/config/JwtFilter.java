@@ -13,6 +13,7 @@ import com.tspcompany.survey.repository.PersonRepository;
 import com.tspcompany.survey.util.JwtUtil;
 
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,26 +21,27 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
-    
-private final JwtUtil jwtUtil;
+
+    private final JwtUtil jwtUtil;
     private final PersonRepository personRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws IOException, jakarta.servlet.ServletException {
+                                    FilterChain filterChain) throws IOException, ServletException {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             try {
-                String email = jwtUtil.extractUsername(token);
-                var opt = personRepository.findByEmail(email);
-                if (opt.isPresent()) {
-                    var person = opt.get();
-                    // crear Authentication y ponerla en el contexto
-                    var authorities = List.of(new SimpleGrantedAuthority(person.getRole()));
-                    var auth = new UsernamePasswordAuthenticationToken(email, null, authorities);
-                    SecurityContextHolder.getContext().setAuthentication(auth);
+                if (jwtUtil.validateToken(token)) {
+                    String email = jwtUtil.extractUsername(token);
+                    var opt = personRepository.findByEmail(email);
+                    if (opt.isPresent()) {
+                        var person = opt.get();
+                        var authorities = List.of(new SimpleGrantedAuthority(person.getRole()));
+                        var auth = new UsernamePasswordAuthenticationToken(email, null, authorities);
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    }
                 }
             } catch (Exception e) {
                 // token inválido -> no autenticamos
