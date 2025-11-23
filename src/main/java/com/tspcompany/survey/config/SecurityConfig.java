@@ -25,15 +25,29 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    // Bean del filtro JwtFilter (solo uno)
+    @Bean
+    public JwtFilter jwtFilter() {
+        return new JwtFilter(jwtUtil, personRepository);
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        JwtFilter jwtFilter = new JwtFilter(jwtUtil, personRepository);
+
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/webhook/**", "/r/**").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/api/webhook/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 }
