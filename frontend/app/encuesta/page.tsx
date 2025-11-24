@@ -6,24 +6,15 @@ export default function EncuestaPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-8">
       <div className="w-full max-w-2xl">
-        {/* Contenedor principal con fondo gris */}
         <div className="bg-gray-100 p-12 rounded-lg">
-          {/* Título */}
           <h1 className="text-4xl font-bold text-center mb-3">
             Encuesta satisfaccion del servicio
           </h1>
-          
-          {/* Subtítulo */}
           <p className="text-center text-gray-700 mb-8">
             Tu opinión es importante para seguir mejorando nuestro servicio.
           </p>
-          
-          {/* Línea separadora */}
           <div className="border-t border-gray-400 mb-8"></div>
-          
-          {/* Formulario */}
           <form className="space-y-6">
-            {/* Campo: Nombre */}
             <div className="space-y-2">
               <Label htmlFor="nombre" className="text-sm font-medium">
                 Nombre
@@ -35,8 +26,6 @@ export default function EncuestaPage() {
                 className="h-11 bg-white border-gray-300"
               />
             </div>
-
-            {/* Campo: Correo */}
             <div className="space-y-2">
               <Label htmlFor="correo" className="text-sm font-medium">
                 Correo
@@ -48,8 +37,6 @@ export default function EncuestaPage() {
                 className="h-11 bg-white border-gray-300"
               />
             </div>
-
-            {/* Campo: Satisfacción servicio */}
             <div className="space-y-2">
               <Label htmlFor="satisfaccion" className="text-sm font-medium">
                 Satisfacción servicio
@@ -63,8 +50,6 @@ export default function EncuestaPage() {
                 className="h-11 bg-white border-gray-300"
               />
             </div>
-
-            {/* Campo: Fecha */}
             <div className="space-y-2">
               <Label htmlFor="fecha" className="text-sm font-medium">
                 Fecha
@@ -76,8 +61,6 @@ export default function EncuestaPage() {
                 className="h-11 bg-white border-gray-300"
               />
             </div>
-
-            {/* Botón de enviar */}
             <div className="flex justify-center pt-6">
               <Button 
                 type="submit" 

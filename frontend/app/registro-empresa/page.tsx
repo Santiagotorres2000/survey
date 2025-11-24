@@ -6,19 +6,13 @@ export default function RegistroEmpresaPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="w-full max-w-md px-8">
-        {/* Título */}
         <h1 className="text-4xl font-bold text-center mb-4">
           Registro de Empresa
         </h1>
-        
-        {/* Subtítulo */}
         <p className="text-center text-gray-600 mb-8">
           Completa los datos de tu empresa para crear una cuenta en el sistema.
         </p>
-
-        {/* Formulario */}
         <form className="space-y-5">
-          {/* Nombre de Empresa */}
           <div className="space-y-2">
             <Label htmlFor="nombre" className="text-sm font-normal">
               Nombre de Empresa
@@ -30,8 +24,6 @@ export default function RegistroEmpresaPage() {
               className="h-11 bg-gray-50 border-gray-200"
             />
           </div>
-
-          {/* NIT */}
           <div className="space-y-2">
             <Label htmlFor="nit" className="text-sm font-normal">
               NIT
@@ -43,8 +35,6 @@ export default function RegistroEmpresaPage() {
               className="h-11 bg-gray-50 border-gray-200"
             />
           </div>
-
-          {/* Correo corporativo */}
           <div className="space-y-2">
             <Label htmlFor="correo" className="text-sm font-normal">
               Correo corporativo
@@ -56,8 +46,6 @@ export default function RegistroEmpresaPage() {
               className="h-11 bg-gray-50 border-gray-200"
             />
           </div>
-
-          {/* Teléfono */}
           <div className="space-y-2">
             <Label htmlFor="telefono" className="text-sm font-normal">
               Teléfono
@@ -69,8 +57,6 @@ export default function RegistroEmpresaPage() {
               className="h-11 bg-gray-50 border-gray-200"
             />
           </div>
-
-          {/* Dirección */}
           <div className="space-y-2">
             <Label htmlFor="direccion" className="text-sm font-normal">
               Dirección
