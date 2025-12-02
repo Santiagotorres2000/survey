@@ -1,6 +1,7 @@
 "use client"
 
-import React from "react"
+import React, { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   HomeIcon,
@@ -26,6 +27,62 @@ import {
 } from "@/components/ui/sidebar"
 
 export function AppSidebar() {
+  const [user, setUser] = useState<{
+    firstName?: string | null
+    lastName?: string | null
+    email?: string | null
+    role?: string | null
+  } | null>(null)
+
+  const router = useRouter()
+
+  const handleLogout = () => {
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token")
+        localStorage.removeItem("userEmail")
+        localStorage.removeItem("companyId")
+        localStorage.removeItem("companyName")
+      }
+    } catch (e) {
+      console.error("Error clearing localStorage on logout:", e)
+    }
+    // Reset local user state and navigate to login
+    setUser(null)
+    router.push("/login")
+  }
+
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+    if (!token) return
+
+    const fetchMe = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/auth/me", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          setUser({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            role: data.role,
+          })
+        }
+      } catch (err) {
+        console.error("Error fetching current user:", err)
+      }
+    }
+
+    fetchMe()
+  }, [])
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -117,7 +174,7 @@ export function AppSidebar() {
           <div className="mt-3">
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => console.log("logout")}> 
+                <SidebarMenuButton onClick={handleLogout}>
                   <LogOutIcon />
                   <span>CERRAR SESION</span>
                 </SidebarMenuButton>
