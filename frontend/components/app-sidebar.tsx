@@ -52,36 +52,6 @@ export function AppSidebar() {
     router.push("/login")
   }
 
-  useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
-    if (!token) return
-
-    const fetchMe = async () => {
-      try {
-        const res = await fetch("http://localhost:8080/api/auth/me", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        })
-
-        if (res.ok) {
-          const data = await res.json()
-          setUser({
-            firstName: data.firstName,
-            lastName: data.lastName,
-            email: data.email,
-            role: data.role,
-          })
-        }
-      } catch (err) {
-        console.error("Error fetching current user:", err)
-      }
-    }
-
-    fetchMe()
-  }, [])
 
   return (
     <Sidebar>
@@ -157,8 +127,8 @@ export function AppSidebar() {
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-700 font-medium">SB</div>
             <div className="flex-1">
-              <div className="text-sm font-medium">Santiago B.</div>
-              <div className="text-xs text-slate-500">santiago@example.com</div>
+              <div className="text-sm font-medium">usuario</div>
+              <div className="text-xs text-slate-500">correo</div>
             </div>
             <div>
               <Link href="/perfil" className="block">

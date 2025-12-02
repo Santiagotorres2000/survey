@@ -85,33 +85,16 @@ export default function LoginPage() {
         localStorage.setItem("token", data.token)
         localStorage.setItem("userEmail", formData.email)
 
-        // Obtener usuario actual para conocer su rol
-        try {
-          const meRes = await fetch("http://localhost:8080/api/auth/me", {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${data.token}`,
-              Accept: "application/json",
-            },
-          })
-
-          if (meRes.ok) {
-            const me = await meRes.json()
-            const role = (me.role || "USER").toString().toUpperCase()
-            // Redirigir según rol
-            if (role === "ADMIN") {
-              router.push("/dashboard")
-            } else {
-              router.push("/inicio")
-            }
-          } else {
-            // Si no se puede obtener info del usuario, ir al dashboard por defecto
-            router.push("/dashboard")
-          }
-        } catch (err) {
-          console.error("No se pudo obtener info del usuario:", err)
-          router.push("/dashboard")
+        // Guardar companyId y role si están disponibles
+        if (data.companyId) {
+          localStorage.setItem("companyId", data.companyId.toString())
         }
+        if (data.role) {
+          localStorage.setItem("userRole", data.role)
+        }
+
+        // Redirigir al dashboard
+        router.push("/dashboard")
       }
 
       // Limpiar formulario

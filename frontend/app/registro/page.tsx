@@ -144,11 +144,19 @@ export default function RegistroPage() {
       }
 
       const data = await response.json()
-      
+
       // Guardar token en localStorage
       if (data.token) {
         localStorage.setItem("token", data.token)
         localStorage.setItem("userEmail", formData.email)
+
+        // Guardar companyId y role si están disponibles
+        if (data.companyId) {
+          localStorage.setItem("companyId", data.companyId.toString())
+        }
+        if (data.role) {
+          localStorage.setItem("userRole", data.role)
+        }
       }
 
       setSuccess(true)

@@ -4,6 +4,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.tspcompany.survey.dto.AuthRequest;
+import com.tspcompany.survey.dto.AuthResponse;
 import com.tspcompany.survey.dto.RegisterPersonRequest;
 import com.tspcompany.survey.entity.Company;
 import com.tspcompany.survey.entity.Person;
@@ -22,7 +23,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public String register(RegisterPersonRequest req) {
+    public AuthResponse register(RegisterPersonRequest req) {
         Company company = companyRepository.findById(req.getCompanyId())
                 .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
 
@@ -42,10 +43,10 @@ public class AuthService {
                 .build();
 
         personRepository.save(p);
-        return jwtUtil.generateToken(p.getEmail());
+        return new AuthResponse(jwtUtil.generateToken(p.getEmail()), p.getCompany().getId(), p.getRole());
     }
 
-    public String login(AuthRequest req) {
+    public AuthResponse login(AuthRequest req) {
         Person p = personRepository.findByEmail(req.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
@@ -57,6 +58,6 @@ public class AuthService {
             throw new RuntimeException("Credenciales inválidas");
         }
 
-        return jwtUtil.generateToken(p.getEmail());
+        return new AuthResponse(jwtUtil.generateToken(p.getEmail()), p.getCompany().getId(), p.getRole());
     }
 }
