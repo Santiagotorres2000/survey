@@ -1,77 +1,63 @@
-
--- TABLA: Company
 CREATE TABLE company (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    nit VARCHAR(50) NOT NULL,
-    address VARCHAR(200)
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    nit VARCHAR(255),
+    address VARCHAR(255)
 );
 
--- TABLA: Survey
-CREATE TABLE survey (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(200) NOT NULL,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT NOW(),
-    company_id INT NOT NULL,
-    CONSTRAINT fk_survey_company
-        FOREIGN KEY (company_id) REFERENCES company(id)
-);
-
--- TABLA: Question
-CREATE TABLE question (
-    id SERIAL PRIMARY KEY,
-    text TEXT NOT NULL,
-    type VARCHAR(50) NOT NULL,
-    survey_id INT NOT NULL,
-    CONSTRAINT fk_question_survey
-        FOREIGN KEY (survey_id) REFERENCES survey(id)
-);
-
--- TABLA: OptionItem
-CREATE TABLE option_item (
-    id SERIAL PRIMARY KEY,
-    label VARCHAR(100) NOT NULL,
-    question_id INT NOT NULL,
-    CONSTRAINT fk_optionitem_question
-        FOREIGN KEY (question_id) REFERENCES question(id)
-);
-
--- TABLA: Person
 CREATE TABLE person (
-    id SERIAL PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(150) UNIQUE NOT NULL,
-    phone VARCHAR(50),
-    role VARCHAR(50),
-    status VARCHAR(50),
-    password_hash TEXT NOT NULL,
-    company_id INT NOT NULL,
-    CONSTRAINT fk_person_company
-        FOREIGN KEY (company_id) REFERENCES company(id)
+    id BIGSERIAL PRIMARY KEY,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    phone VARCHAR(255),
+    role VARCHAR(255) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'ACTIVO',
+    password_hash VARCHAR(255) NOT NULL,
+    company_id BIGINT,
+    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES company(id) ON DELETE SET NULL
 );
 
--- TABLA: Respondent
+CREATE TABLE survey (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    company_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_survey_company FOREIGN KEY (company_id) REFERENCES company(id) ON DELETE CASCADE
+);
+
+CREATE TABLE question (
+    id BIGSERIAL PRIMARY KEY,
+    text VARCHAR(255) NOT NULL,
+    survey_id BIGINT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    CONSTRAINT fk_question_survey FOREIGN KEY (survey_id) REFERENCES survey(id) ON DELETE CASCADE
+);
+
+CREATE TABLE option_item (
+    id BIGSERIAL PRIMARY KEY,
+    label VARCHAR(255) NOT NULL,
+    question_id BIGINT NOT NULL,
+    CONSTRAINT fk_option_item_question FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE
+);
+
 CREATE TABLE respondent (
-    id SERIAL PRIMARY KEY,
-    phone VARCHAR(50),
-    email VARCHAR(150)
+    id BIGSERIAL PRIMARY KEY,
+    phone VARCHAR(255),
+    email VARCHAR(255),
+    survey_id BIGINT NOT NULL,
+    CONSTRAINT fk_respondent_survey FOREIGN KEY (survey_id) REFERENCES survey(id) ON DELETE CASCADE
 );
 
--- TABLA: Response
 CREATE TABLE response (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
+    respondent_id BIGINT NOT NULL,
+    question_id BIGINT NOT NULL,
     answer_text TEXT,
-
-    respondent_id INT NOT NULL,
-    question_id INT NOT NULL,
-    option_item_id INT,
-
-    CONSTRAINT fk_response_respondent
-        FOREIGN KEY (respondent_id) REFERENCES respondent(id),
-    CONSTRAINT fk_response_question
-        FOREIGN KEY (question_id) REFERENCES question(id),
-    CONSTRAINT fk_response_optionitem
-        FOREIGN KEY (option_item_id) REFERENCES option_item(id)
+    option_item_id BIGINT,
+    responded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_response_respondent FOREIGN KEY (respondent_id) REFERENCES respondent(id) ON DELETE CASCADE,
+    CONSTRAINT fk_response_question FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE,
+    CONSTRAINT fk_response_option_item FOREIGN KEY (option_item_id) REFERENCES option_item(id) ON DELETE SET NULL
 );
