@@ -6,6 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+interface Question {
+  text: string
+  type: string
+  options: string[]
+}
+
 export default function DashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -20,6 +26,9 @@ export default function DashboardPage() {
     title: "",
     description: "",
   })
+
+  const [questions, setQuestions] = useState<Question[]>([])
+  const [newOption, setNewOption] = useState<{ [key: number]: string }>({})
 
   // Fetch survey count and latest survey
   const fetchSurveyCount = async () => {
@@ -80,11 +89,62 @@ export default function DashboardPage() {
     }))
   }
 
+  const addQuestion = () => {
+    setQuestions([...questions, { text: "", type: "TEXT", options: [] }])
+  }
+
+  const removeQuestion = (index: number) => {
+    setQuestions(questions.filter((_, i) => i !== index))
+  }
+
+  const updateQuestion = (index: number, field: keyof Question, value: string) => {
+    const updatedQuestions = [...questions]
+    if (field === "type") {
+      updatedQuestions[index] = { ...updatedQuestions[index], [field]: value, options: [] }
+    } else {
+      updatedQuestions[index] = { ...updatedQuestions[index], [field]: value }
+    }
+    setQuestions(updatedQuestions)
+  }
+
+  const addOption = (questionIndex: number) => {
+    const optionText = newOption[questionIndex]?.trim()
+    if (!optionText) return
+
+    const updatedQuestions = [...questions]
+    updatedQuestions[questionIndex].options.push(optionText)
+    setQuestions(updatedQuestions)
+    setNewOption({ ...newOption, [questionIndex]: "" })
+  }
+
+  const removeOption = (questionIndex: number, optionIndex: number) => {
+    const updatedQuestions = [...questions]
+    updatedQuestions[questionIndex].options = updatedQuestions[questionIndex].options.filter(
+      (_, i) => i !== optionIndex
+    )
+    setQuestions(updatedQuestions)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
     setSuccess(false)
+
+    // Validate questions
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i]
+      if (!q.text.trim()) {
+        setError(`La pregunta ${i + 1} no puede estar vacía`)
+        setLoading(false)
+        return
+      }
+      if (q.type === "MULTIPLE_CHOICE" && q.options.length < 2) {
+        setError(`La pregunta ${i + 1} debe tener al menos 2 opciones`)
+        setLoading(false)
+        return
+      }
+    }
 
     try {
       const token = localStorage.getItem("token")
@@ -109,6 +169,11 @@ export default function DashboardPage() {
           companyId: companyId,
           title: formData.title,
           description: formData.description,
+          questions: questions.map((q) => ({
+            text: q.text,
+            type: q.type,
+            options: q.type === "MULTIPLE_CHOICE" ? q.options : [],
+          })),
         }),
       })
 
@@ -125,6 +190,8 @@ export default function DashboardPage() {
 
       setSuccess(true)
       setFormData({ title: "", description: "" })
+      setQuestions([])
+      setNewOption({})
 
       // Actualizar el contador de encuestas y última encuesta después de un breve delay
       setTimeout(() => {
@@ -177,7 +244,7 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold text-gray-800">350</p>
+            <p className="text-4xl font-bold text-gray-800">0</p>
           </CardContent>
         </Card>
 
@@ -207,7 +274,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold text-gray-800">
-              4.6<span className="text-2xl text-gray-600">/5</span>
+              No hay respuestas por ahora, revisa luego
             </p>
           </CardContent>
         </Card>
@@ -224,8 +291,8 @@ export default function DashboardPage() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-gray-800">Nueva Encuesta</h2>
               <button
@@ -233,6 +300,8 @@ export default function DashboardPage() {
                   setIsModalOpen(false)
                   setError(null)
                   setSuccess(false)
+                  setQuestions([])
+                  setNewOption({})
                 }}
                 className="text-gray-500 hover:text-gray-700"
               >
@@ -281,6 +350,118 @@ export default function DashboardPage() {
                 />
               </div>
 
+              {/* Questions Section */}
+              <div className="space-y-3 border-t pt-4">
+                <div className="flex justify-between items-center">
+                  <Label className="text-sm font-medium">Preguntas</Label>
+                  <Button
+                    type="button"
+                    onClick={addQuestion}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 h-8"
+                  >
+                    + Agregar pregunta
+                  </Button>
+                </div>
+
+                {questions.map((question, qIndex) => (
+                  <div key={qIndex} className="border rounded-lg p-4 bg-gray-50 space-y-3">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1 space-y-3">
+                        <div>
+                          <Label className="text-xs text-gray-600">
+                            Pregunta {qIndex + 1}
+                          </Label>
+                          <Input
+                            type="text"
+                            placeholder="Escribe tu pregunta aquí"
+                            className="mt-1 bg-white"
+                            value={question.text}
+                            onChange={(e) => updateQuestion(qIndex, "text", e.target.value)}
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs text-gray-600">Tipo de pregunta</Label>
+                          <select
+                            className="mt-1 w-full px-3 py-2 bg-white border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                            value={question.type}
+                            onChange={(e) => updateQuestion(qIndex, "type", e.target.value)}
+                          >
+                            <option value="TEXT">Texto libre</option>
+                            <option value="MULTIPLE_CHOICE">Opción múltiple</option>
+                          </select>
+                        </div>
+
+                        {question.type === "MULTIPLE_CHOICE" && (
+                          <div className="space-y-2">
+                            <Label className="text-xs text-gray-600">Opciones</Label>
+                            <div className="space-y-2">
+                              {question.options.map((option, oIndex) => (
+                                <div key={oIndex} className="flex gap-2 items-center">
+                                  <span className="text-sm text-gray-600 w-6">{oIndex + 1}.</span>
+                                  <Input
+                                    type="text"
+                                    value={option}
+                                    className="flex-1 bg-white text-sm"
+                                    readOnly
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeOption(qIndex, oIndex)}
+                                    className="text-red-600 hover:text-red-800 text-sm px-2"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              ))}
+                              <div className="flex gap-2">
+                                <Input
+                                  type="text"
+                                  placeholder="Nueva opción"
+                                  className="flex-1 bg-white text-sm"
+                                  value={newOption[qIndex] || ""}
+                                  onChange={(e) =>
+                                    setNewOption({ ...newOption, [qIndex]: e.target.value })
+                                  }
+                                  onKeyPress={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault()
+                                      addOption(qIndex)
+                                    }
+                                  }}
+                                />
+                                <Button
+                                  type="button"
+                                  onClick={() => addOption(qIndex)}
+                                  className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 h-9"
+                                >
+                                  Agregar
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeQuestion(qIndex)}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {questions.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    No hay preguntas. Haz clic en "Agregar pregunta" para comenzar.
+                  </p>
+                )}
+              </div>
+
               <div className="flex gap-3 pt-2">
                 <Button
                   type="button"
@@ -290,6 +471,8 @@ export default function DashboardPage() {
                     setIsModalOpen(false)
                     setError(null)
                     setSuccess(false)
+                    setQuestions([])
+                    setNewOption({})
                   }}
                   disabled={loading}
                 >
