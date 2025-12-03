@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,11 +11,66 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [surveyCount, setSurveyCount] = useState<number>(0)
+  const [loadingSurveys, setLoadingSurveys] = useState(true)
+  const [latestSurveyTitle, setLatestSurveyTitle] = useState<string>("")
+  const [latestSurveyDescription, setLatestSurveyDescription] = useState<string>("")
 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
   })
+
+  // Fetch survey count and latest survey
+  const fetchSurveyCount = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      const companyIdStr = localStorage.getItem("companyId")
+
+      if (!token || !companyIdStr) {
+        setLoadingSurveys(false)
+        return
+      }
+
+      const companyId = Number(companyIdStr)
+
+      const response = await fetch(`http://localhost:8080/api/survey/company/${companyId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      })
+
+      if (response.ok) {
+        const surveys = await response.json()
+        if (Array.isArray(surveys)) {
+          setSurveyCount(surveys.length)
+          // Get the latest survey (last one in the array)
+          if (surveys.length > 0) {
+            const latestSurvey = surveys[surveys.length - 1]
+            setLatestSurveyTitle(latestSurvey.title || "Sin título")
+            setLatestSurveyDescription(latestSurvey.description || "")
+          } else {
+            setLatestSurveyTitle("No hay encuestas")
+            setLatestSurveyDescription("")
+          }
+        } else {
+          setSurveyCount(0)
+          setLatestSurveyTitle("No hay encuestas")
+          setLatestSurveyDescription("")
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching surveys:", err)
+    } finally {
+      setLoadingSurveys(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchSurveyCount()
+  }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target
@@ -71,11 +126,16 @@ export default function DashboardPage() {
       setSuccess(true)
       setFormData({ title: "", description: "" })
 
-      // Cerrar modal después de 1 segundo
+      // Actualizar el contador de encuestas y última encuesta después de un breve delay
+      setTimeout(() => {
+        fetchSurveyCount()
+      }, 300)
+
+      // Cerrar modal después de 1.5 segundos
       setTimeout(() => {
         setIsModalOpen(false)
         setSuccess(false)
-      }, 1000)
+      }, 1500)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Error desconocido"
       setError(errorMessage)
@@ -104,7 +164,9 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold text-gray-800">12</p>
+            <p className="text-4xl font-bold text-gray-800">
+              {loadingSurveys ? "..." : surveyCount}
+            </p>
           </CardContent>
         </Card>
 
@@ -126,8 +188,14 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1">
-            <p className="font-medium text-gray-800">Satisfacción del servicio</p>
-            <p className="text-sm text-gray-600">10/11/2025</p>
+            <p className="font-medium text-gray-800">
+              {loadingSurveys ? "Cargando..." : latestSurveyTitle}
+            </p>
+            {!loadingSurveys && latestSurveyDescription && (
+              <p className="text-sm text-gray-600">
+                {latestSurveyDescription}
+              </p>
+            )}
           </CardContent>
         </Card>
 
